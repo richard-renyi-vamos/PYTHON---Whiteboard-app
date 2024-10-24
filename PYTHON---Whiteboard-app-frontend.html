@@ -1,0 +1,55 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whiteboard</title>
+    <style>
+        #whiteboard {
+            border: 1px solid black;
+            cursor: crosshair;
+        }
+    </style>
+</head>
+<body>
+    <h1>Collaborative Whiteboard</h1>
+    <canvas id="whiteboard" width="800" height="600"></canvas>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
+    <script>
+        const canvas = document.getElementById('whiteboard');
+        const context = canvas.getContext('2d');
+        const socket = io();
+
+        let drawing = false;
+
+        canvas.addEventListener('mousedown', (e) => {
+            drawing = true;
+            draw(e.clientX, e.clientY);
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (drawing) {
+                draw(e.clientX, e.clientY);
+                socket.emit('draw', { x: e.clientX, y: e.clientY });
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            drawing = false;
+        });
+
+        // Draw on the canvas
+        function draw(x, y) {
+            context.lineTo(x, y);
+            context.stroke();
+        }
+
+        // Handle drawing from other users
+        socket.on('draw', (data) => {
+            draw(data.x, data.y);
+        });
+    </script>
+</body>
+</html>
